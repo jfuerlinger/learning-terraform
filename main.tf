@@ -10,9 +10,39 @@ resource "azurerm_resource_group" "resg" {
 
 resource "azurerm_application_insights" "ai" {
   name                = "terraform-ai"
-  resource_group_name = "${azurerm_resource_group.resg.name}"
-  location            = "${azurerm_resource_group.resg.location}"
+  resource_group_name = azurerm_resource_group.resg.name
+  location            = azurerm_resource_group.resg.location
   application_type    = "Web"
-  tags                = "${var.tags}"
+  tags                = var.tags
 }
 
+resource "azurerm_app_service_plan" "appsvcplan" {
+  name                = "terraform-app-svc-plan"
+  resource_group_name = azurerm_resource_group.resg.name
+  location            = azurerm_resource_group.resg.location
+  kind                = var.appservice_plan_kind
+  reserved            = true
+  tags                = var.tags
+
+  sku {
+    tier = var.appservice_plan_tier
+    size = var.appservice_plan_size
+  }
+}
+
+resource "azurerm_app_service" "appsvc" {
+  name                = "jf-terraform-app-linux-app-svc"
+  resource_group_name = azurerm_resource_group.resg.name
+  app_service_plan_id = azurerm_app_service_plan.appsvcplan.id
+  location            = azurerm_resource_group.resg.location
+  tags                = var.tags
+
+  app_settings = {
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+  }
+
+  site_config {
+    always_on        = var.appservice_always_on
+    linux_fx_version = "DOCKER|var.appservice_docker_image"
+  }
+}
