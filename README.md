@@ -27,7 +27,7 @@ terraform destroy
 
 ## Additional infos
 
-# Content of local.tfvars
+#### Content of local.tfvars
 
 Because it is on the .gitignore list
 
