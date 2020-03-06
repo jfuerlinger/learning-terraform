@@ -39,10 +39,20 @@ resource "azurerm_app_service" "appsvc" {
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+    DOCKER_REGISTRY_SERVER_URL          = "https://index.docker.io"
+    DOCKER_ENABLE_CI                    = true
+    INSTRUMENTATION_KEY                 = azurerm_application_insights.ai.instrumentation_key
   }
 
   site_config {
     always_on        = var.appservice_always_on
-    linux_fx_version = "DOCKER|var.appservice_docker_image"
+    #linux_fx_version = "DOCKER|$(var.appservice_docker_image)"
+    linux_fx_version = "DOCKER|nginx:alpine"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      site_config.0.linux_fx_version, # deployments are made outside of Terraform
+    ]
   }
 }
